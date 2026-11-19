@@ -1,0 +1,986 @@
+---
+title: "Homework 4.3: Reproducible Data Analysis"
+subtitle: "STAT 184"
+author: "Andrew Speer"
+date: "Nov. 18, 2026"
+date-modified: now
+format:
+  pdf:
+    toc: false
+    number-sections: true
+    number-depth: 5
+    fig-align: center
+    cap-location: top
+    geometry:
+      - top=1in
+      - left=1in
+      - right=1in
+      - bottom=1in
+    colorlinks: true
+
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+# Diamonds: Descriptive Statistics by Cut
+
+The following tables compare diamond depth (z), length (x), and width (y), measured in millimeters, across five cut qualities: Fair, Good, Very Good, Premium, and Ideal. Diamonds with a zero in any of these dimensions were removed before calculating the statistics. Each table reports the number of diamonds, minimum, maximum, 20th, 40th, 60th, and 80th percentiles, median, sample arithmetic mean, and sample arithmetic standard deviation. Also, the groups have large differences in size, ranging from 1,609 Fair-cut diamonds to 21,548 Ideal-cut diamonds.
+
+```{r}
+#| label: lst-diamonds-data-code
+#| warning: false
+#| lst-cap: "Code Chunk for Importing Needed Libraries and Diamonds Data"
+
+# import the tidyverse library
+library(tidyverse)
+library(kableExtra)
+
+data(diamonds)
+
+```
+
+```{r}
+#| label: lst-diamonds-wrangling-code
+#| warning: false
+#| lst-cap: "Code Chunk for Tidying and Wrangling Diamonds Data"
+
+## Step 1: Remove any diamonds where a dimension = 0 and only
+## keep columns cut, x, y, and z
+newDiamonds <- diamonds |>
+  filter(x != 0, y != 0, z != 0) |>
+  select(cut, x, y, z)
+
+## Step 2: Convert dimensions into a single column and place their values in a
+# new column called value
+longDiamonds <- newDiamonds |>
+  pivot_longer(
+    cols = c(x, y, z),
+    names_to = "dimension",
+    values_to = "value"
+  )
+
+## Step 3: Calculate statistics for each cut and dimension
+wrangledDiamonds <- longDiamonds |>
+  group_by(cut, dimension) |>
+  summarise(
+    count = n(),
+    Min = min(value),
+    quintile1 = quantile(value, .2, na.rm = TRUE),
+    quintile2 = quantile(value, .4, na.rm = TRUE),
+    Med = median(value),
+    SAM = mean(value),
+    quintile3 = quantile(value, .6, na.rm = TRUE),
+    quintile4 = quantile(value, .8, na.rm = TRUE),
+    Max = max(value),
+    MAD = mad(value),
+    SASD = sd(value)
+  )
+
+```
+
+## Diamond Depth (z) Summary Statistics
+
+```{r}
+#| label: tbl-diamonds-z-summary
+#| tbl-cap: "Summary Statistics on Diamond Depth (z) by Cut"
+#| tbl-pos: H
+#| lst-label: lst-tableZ
+#| lst-cap: "Code Chunk for Making Diamond Depth Table"
+#| html-table-processing: none
+
+## Step 4: Combine the statistics for depth (z)
+zDiamonds <- wrangledDiamonds |>
+  filter(dimension == "z") |>
+  select(cut, count, Min, 
+         quintile1, quintile2, Med, 
+         quintile3, quintile4, Max, 
+         SAM, SASD)
+
+## Step 5: Format the depth summary statistics table
+zDiamondtable <-zDiamonds |>
+  kable(
+    row.names = FALSE,
+    digits = 4,
+    col.names = c(
+      "Cut", "Count", "Min", "20%-tile", "40%-tile", "Median", "60%-tile", 
+      "80%-tile", "Max", "Mean", "SD"
+    )
+  ) |>
+  kable_classic()
+
+zDiamondtable
+
+```
+
+@tbl-diamonds-z-summary shows that Fair-cut diamonds have the highest median depth at 3.97 mm, while Ideal-cut diamonds have the lowest at 3.23 mm, a difference of 0.74 mm. The middle 60% of Fair-cut depths falls between 3.48 and 4.49 mm, compared with 2.75 to 4.05 mm for Ideal-cut diamonds. These intervals overlap, showing that the groups are not completely separated by depth. The interval is also wider for Ideal diamonds, indicating more variation in the central portion of their depths. However, Very Good diamonds have the largest standard deviation at about 0.73 mm. Their maximum depth of 31.80 mm stands out compared with their 80th percentile of 4.10 mm. This unusually large measurement should be checked because standard deviation and the mean are sensitive to extreme values.
+
+{{< pagebreak >}}
+
+## Diamond Length (x) Summary Statistics
+
+```{r}
+#| label: tbl-diamonds-x-summary
+#| tbl-cap: "Summary Statistics on Diamond Length (x) by Cut"
+#| tbl-pos: H
+#| lst-label: lst-tableX
+#| lst-cap: "Code Chunk for Making Diamond Length Table"
+#| html-table-processing: none
+
+xDiamonds <- wrangledDiamonds |>
+  filter(dimension == "x") |>
+  select(cut, count, Min,
+         quintile1, quintile2, Med, 
+         quintile3, quintile4, Max, 
+         SAM, SASD)
+
+xDiamondtable <-xDiamonds |>
+  kable(
+    row.names = FALSE,
+    digits = 4,
+    col.names = c(
+      "Cut", "Count", "Min", "20%-tile", "40%-tile", "Median", "60%-tile", 
+      "80%-tile", "Max", "Mean", "SD"
+    )
+  ) |>
+  kable_classic()
+
+xDiamondtable
+
+```
+
+@tbl-diamonds-x-summary shows that Fair-cut diamonds have the highest median length at 6.18 mm, while Ideal-cut diamonds have the lowest at 5.25 mm, a difference of 0.93 mm. Median length does not steadily decrease as cut quality improves. Premium diamonds, for example, have a median length of 6.11 mm, higher than both Good and Very Good diamonds. Premium diamonds also have the largest standard deviation at about 1.19 mm, compared with about 0.95 mm for Fair diamonds. This means that Premium diamonds have greater variability in length by this measure, even though Fair diamonds have a slightly higher median. These results show that the group with the greatest typical length does not necessarily have the greatest variation in length.
+
+## Diamond Width (y) Summary Statistics
+
+```{r}
+#| label: tbl-diamonds-y-summary
+#| tbl-cap: "Summary Statistics on Diamond Width (y) by Cut"
+#| tbl-pos: H
+#| lst-label: lst-tableY
+#| lst-cap: "Code Chunk for Making Diamond Width Table"
+#| html-table-processing: none
+
+yDiamonds <- wrangledDiamonds |>
+  filter(dimension == "y") |>
+  select(cut, count, Min, 
+         quintile1, quintile2, Med, 
+         quintile3, quintile4, Max, 
+         SAM, SASD)
+
+yDiamondtable <-yDiamonds |>
+  kable(
+  row.names = FALSE,
+    digits = 4,
+    col.names = c(
+      "Cut", "Count", "Min", "20%-tile", "40%-tile", "Median", "60%-tile", 
+      "80%-tile", "Max", "Mean", "SD"
+    )
+  ) |>
+  kable_classic()
+
+yDiamondtable
+
+```
+
+@tbl-diamonds-y-summary shows diamond width in millimeters for each cut quality. Fair-cut diamonds have the highest median width at 6.10 mm, followed closely by Premium diamonds at 6.06 mm, while Ideal-cut diamonds have the lowest median at 5.26 mm. Premium diamonds have the highest standard deviation at about 1.26 mm. Their maximum width of 58.90 mm stands out because their 80th percentile is only 6.94 mm. Ideal diamonds also have an unusually high maximum of 31.80 mm compared with their 80th percentile of 6.57 mm. These extreme values could affect the means and standard deviations, so the medians are useful for comparing typical widths. These outliers should be checked before deciding whether they are valid measurements or data-entry errors.
+
+{{< pagebreak >}}
+
+# Big Ten Academic Alliance-Love Data Week
+
+```{r}
+#| label: lst-bigten-data-code
+#| lst-cap: "Code Chunk for Loading Data"
+
+## make sure the games_copy.csv file is in the working directory then save 
+## it in the 'games' variable
+games <- read.csv('games_copy.csv')
+
+```
+
+```{r}
+#| label: lst-bigten-tidying-code
+#| lst-cap: "Code Chunk for Tidying the 'games' Data"
+
+## keep all completed games from the 2026 season, excluding neutral-site games
+tidyGames <- games |>
+  filter(
+    season == 2026,
+    status_type_completed == TRUE,
+    neutral_site == FALSE
+  )
+
+```
+
+```{r}
+#| label: lst-pennstate-wrangling-code
+#| lst-cap: "Code Chunk for Tidying Penn State Game Data"
+
+## create a dataframe containing Penn State's games with columns for game
+## location and points scored
+pennStateGames <- tidyGames |>
+  ## keep only games where Penn State is a team playing
+  filter(
+    home_location == "Penn State" | away_location == "Penn State"
+  ) |>
+  mutate(
+    ## if the game was played at home, label the game 'Home', otherwise
+    ## label it 'Away'
+    location = if_else(
+      home_location == "Penn State", "Home", "Away"
+    ),
+    ## use the home score if Penn State played at home, otherwise
+    ## use the away score
+    points = if_else(
+      home_location == "Penn State", home_score, away_score
+    )
+  )
+
+```
+
+```{r}
+#| label: lst-pennstate-averages-code
+#| lst-cap: "Code Chunk for Calculating Penn State Home and Away Scoring Averages"
+## calculate Penn State's scoring averages and save the results in a bar graph
+psuScoringAverages <- pennStateGames |>
+  ## separate the games into home and away groups
+  group_by(location) |>
+  ## calculate average points for each group, ignoring missing values
+  summarise(
+    average_points = mean(points, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  ## map the game location to the x-axis and average points to the y-axis
+  ggplot(aes(x = location, y = average_points)) +
+  ## match the scales so that the graphs are more comparable
+  coord_cartesian(ylim = c(0, 80)) +
+  geom_col(fill = "blue") +
+  ## add descriptive labels to provide context for the graph
+  labs(
+    x = "Game Location",
+    y = "Average Points per Game"
+  ) +
+  theme_bw()
+
+```
+
+```{r}
+#| label: lst-otherbigten-wrangling-code
+#| lst-cap: "Code Chunk for Tidying Other Big Ten Teams' Data"
+
+## create a dataframe with the home results of other Big Ten teams
+homeTengames <- tidyGames |>
+  ## Big Ten teams are conference id 7
+  filter(home_conference_id == 7) |>
+  ## create and keep only the team, location, 
+  ## and points columns from 'tidyGames'
+  mutate(
+    team = home_location,
+    location = "Home",
+    points = home_score,
+    .keep = "none"
+  ) |>
+  ## exclude Penn State's scoring records from the other Big Ten results
+  filter(team != "Penn State")
+
+## collect the away results for other Big Ten games
+awayTengames <- tidyGames |>
+  ## keep the games where the away team was in the Big Ten
+  filter(away_conference_id == 7) |>
+  ## use the same column labels as the home results
+  ## so we can combine them later
+  mutate(
+    team = away_location,
+    location = "Away",
+    points = away_score,
+    .keep = "none"
+  ) |>
+  filter(team != "Penn State")
+
+## combine the home and away other Big Ten data frames
+bigTengames <- bind_rows(homeTengames, awayTengames)
+
+```
+
+```{r}
+#| label: lst-otherbigten-scoringaverages-code
+#| lst-cap: "Code Chunk for Calculating Other Big Ten Teams' Scoring Averages at Home vs Away"
+## calculate the other Big Ten teams' combined scoring averages 
+## and save the graph in 'teamAverages'
+teamAverages <- bigTengames |>
+  ## group all individual teams' game results by location
+  group_by(location) |>
+  ## take the average points across games in each group
+  summarise(
+    average_points = mean(points, na.rm = TRUE)
+  ) |>
+  ## map game location to the x-axis and average points to the y-axis
+  ggplot(aes(x = location, y = average_points)) +
+  ## match the y-axis scale to that of the Penn State graph
+  coord_cartesian(ylim = c(0, 80)) +
+  geom_col(fill = "blue") +
+  ## add descriptive labels
+  labs(
+    x = "Game Location",
+    y = "Average Points per Game"
+  ) +
+  theme_bw()
+
+```
+
+```{r}
+#| label: fig-home-away-scoring-graphs
+#| fig-cap: "Home and away scoring averages for Penn State and other Big Ten women’s basketball teams during the 2026 season; neutral-site games excluded."
+#| fig-subcap: 
+#|   - "Penn State"
+#|   - "Other Big Ten Teams"
+#| layout-ncol: 2
+#| fig-pos: H
+#| fig-alt: Two-panel blue bar chart comparing home and away average points per game. Penn State scores about 72 away and 75 at home; other Big Ten teams score about 71 away and 79 at home during the 2026 season.
+#| aria-describedby: home-vs-away-description
+
+## display both graphs
+psuScoringAverages
+teamAverages
+
+```
+
+::: {#home-vs-away-description}
+Long description: Two side-by-side blue bar charts compare average points per game at home and away during the 2026 season, excluding neutral-site games. The left chart, titled “Penn State” shows approximately 72 points per game away and 75 at home. The right chart, titled “Other Big Ten Teams” shows approximately 71 points per game away and 79 at home. Both charts use “Game Location” on the horizontal axis and “Average Points per Game” on the vertical axis, with values marked from 0 to 80.
+:::
+
+@fig-home-away-scoring-graphs shows that Penn State has a smaller home–away scoring difference than the other Big Ten teams combined. Penn State averages about 72 points per game away and 75 points at home, a difference of about **3 points**. In comparison, the other Big Ten teams average approximately 71 points away and 79 points at home, a difference of about **8 points**. Penn State therefore scores slightly more on the road than the other teams’ combined average, but less at home. The difference between the two home–away gaps is approximately **5 points**. These averages suggest a pattern worth exploring, but they do not explain its cause. Opponent strength, differences in schedules, and the number of home and away games are all possible explanations, but further analysis would be needed in order to determine their role.
+
+{{< pagebreak >}}
+
+# Monte Carlo Numerical Integration
+
+```{r}
+#| label: monte-carlo-generate-points
+## create a function that returns random x and y coordinates
+generatePoints <- function(n, xmin, xmax, ymin, ymax) {
+  tibble(
+    x = runif(n, min = xmin, max = xmax),
+    y = runif(n, min = ymin, max = ymax)
+  )
+}
+
+```
+
+```{r}
+#| label: monte-carlo-make-plot
+## create a function that generates points, estimates the integral,
+## and returns a plot for the assigned number of points
+make_plot <- function(n) {
+  
+  ## generate n random points within the assigned bounds
+  ## and flag points that are on or below the normal curve
+  flaggedPoints <- generatePoints(
+    n = n,
+    xmin = -4,
+    xmax = 4,
+    ymin = 0,
+    ymax = 0.4
+  ) |>
+    mutate(
+      below = y <= dnorm(x, mean = 0, sd = 1)
+    )
+  
+  ## calculate the area of the rectangle containing the points
+  rectangleArea <- (4 - (-4)) * (0.4 - 0)
+  
+  ## estimate the integral by multiplying the proportion below
+  ## the curve by the rectangle's area
+  proportion_below <- mean(flaggedPoints$below)
+  estimated_area <- proportion_below * rectangleArea
+  
+  ## plot the points and normal curve within the assigned bounds
+  ggplot(flaggedPoints, aes(x = x, y = y)) +
+    geom_point(aes(color = below), alpha = 0.5) +
+    stat_function(
+      fun = dnorm,
+      args = list(mean = 0, sd = 1),
+      xlim = c(-4, 4),
+      color = "black",
+      linewidth = 1
+    ) +
+    coord_cartesian(
+      xlim = c(-4, 4),
+      ylim = c(0, 0.4)
+    ) +
+    ## add labels and report the sample size and estimated integral
+    labs(
+      subtitle = paste(
+        "Number of points:", nrow(flaggedPoints),
+        "| Estimated integral:", round(estimated_area, 4)
+      ),
+      x = "x",
+      y = "Density",
+      color = "On or below curve"
+    ) +
+    theme_bw()
+}
+
+```
+
+```{r}
+#| label: monte-carlo-store-plots
+## make sure the same random points are generated
+## every time the document is rendered
+set.seed(184)
+
+## generate separate plots with 10, 100, 1,000, and 10,000 points
+plot10 <- make_plot(10)
+plot100 <- make_plot(100)
+plot1000 <- make_plot(1000)
+plot10000 <- make_plot(10000)
+
+```
+
+```{r}
+#| label: fig-monte-carlo-integration
+#| fig-cap: "Monte Carlo estimates of the area under the standard normal curve using increasing numbers of simulated points"
+#| fig-subcap:
+#|   - "10 simulated points"
+#|   - "100 simulated points"
+#|   - "1,000 simulated points"
+#|   - "10,000 simulated points"
+#| layout-ncol: 2
+#| fig-pos: H
+#| fig-alt: Four-panel scatterplot showing Monte Carlo integration of a normal curve with 10, 100, 1,000, and 10,000 points, including estimated integrals and color-coded points above or below the curve.
+#| aria-describedby: monte-carlo-description
+## combine the four plots into a two-by-two layout
+plot10
+plot100
+plot1000
+plot10000
+
+```
+
+::: {#monte-carlo-description}
+Long Description: A four-panel 2-by-2 figure titled “Monte Carlo Integration of the Normal Curve.” Each panel shows a black bell-shaped normal curve over a scatterplot of randomly generated points. The horizontal axis is labeled “x,” ranging approximately from −4 to 4, and the vertical axis is labeled “Density,” ranging from 0.0 to 0.4. A legend beside each plot identifies pink points as “FALSE” and teal points as “TRUE” under the heading “On or below curve.”
+
+Top left: 10 points; estimated integral 1.28. The points are sparsely distributed around the curve.
+
+Top right: 100 points; estimated integral 0.864. The points are more numerous, with teal points concentrated beneath the curve and pink points primarily above it.
+
+Bottom left: 1,000 points; estimated integral 0.9248. The plot contains a dense field of pink and teal points, with teal points filling the area beneath the bell curve.
+
+Bottom right: 10,000 points; estimated integral 1.001. The plot is densely filled with pink points above the curve and teal points below it, making the curve’s shape clearly visible.
+:::
+
+As shown in @fig-monte-carlo-integration, the simulation rectangle has $x$-bounds of $-4 \leq x \leq 4$ and $y$-bounds of $0 \leq y \leq 0.4$. The rectangle therefore has a length of 8 and a height of 0.4, giving it an area of $8 \times 0.4 = 3.2$. Random $x$- and $y$-coordinates are then generated within these bounds. For each generated point, its $y$-coordinate is compared with the height of the normal curve at its $x$-coordinate. Points that lie on or below the normal curve are displayed in turquoise, while points above the curve are displayed in red. Because the points are distributed randomly throughout the rectangle, the proportion of points below the curve should be approximately equal to the proportion of the rectangle’s area that lies below the curve. This proportion is calculated using $\text{Proportion Below} = \frac{\text{Points Below}}{\text{Total Points}}$. Multiplying this proportion by the rectangle’s area gives $\text{Estimated Integral} = 3.2 \times \text{Proportion Below}$. This result provides a numerical approximation of the integral of the standard normal curve from $x=-4$ to $x=4$.
+
+The four panels in @fig-monte-carlo-integration demonstrate how the number of simulated points affects the accuracy of the estimated integral. The estimated integral is 1.28 in @fig-monte-carlo-integration-1, 0.864 in @fig-monte-carlo-integration-2, 0.9248 in @fig-monte-carlo-integration-3, and 1.001 in @fig-monte-carlo-integration-4. The estimates furthest from 1 come from the panels with the fewest generated points, particularly @fig-monte-carlo-integration-1 and @fig-monte-carlo-integration-2. As the number of points increases, the turquoise points form a clearer representation of the area beneath the normal curve. This pattern is explained by the Law of Large Numbers: as more independent points are generated uniformly within the rectangle, the proportion below the curve tends to approach the actual proportion of the rectangle occupied by that area. Larger samples generally produce less variable estimates, although increasing the number of points does not guarantee that every estimate will be closer to the actual integral.
+
+Based on these results, I estimate that the integral is approximately 1. The actual area between \(x=-4\) and \(x=4\) is slightly less than 1 because a small part of the normal curve lies outside these bounds. The estimate of 1.001 in @fig-monte-carlo-integration-4 supports this conclusion because it is close to 1 and comes from the simulation with the most points. The estimate can be slightly above 1 because the points are generated randomly. Using more points generally makes the estimate more consistent, although it does not guarantee that every estimate will be closer to the actual area.
+
+# Planning and Prompting GenAI Tools
+
+These data contain calcium measurements from the ulna of each woman’s dominant arm. The study includes 31 women: 15 in the null-treatment group and 16 in the diet/exercise group. Each woman has measurements at four time points: Initial, Year 1, Year 2, and Year 3. My goal is to compare the two groups’ average measurements at each time point.
+
+## Plan-Informed Response
+
+### Goal, Needs, and Plan Prompt
+
+Goal: In R, create a bar graph comparing the calcium levels of 31 women over the span of 3 years. 15 of these women make up the null treatment group, while the other 16 make up the diet/exercise group. I want to take the average calcium level per year of both groups and compare those numbers.
+
+Needs: Nouns: tidyverse, ggplot2, calcium.csv, calcium_dataframe, control_dataframe, treatment_dataframe, treatment_group, null treatment, diet/exercise treatment, Initial, Year1, Year2, Year3, Year, calciumLevel, avg_calcium_tbl, average_calcium, bar graph, bars, x-axis, y-axis, legend
+
+Verbs: library, read.csv, select, rename, drop_na, mutate, bind_rows, pivot_longer, group_by, summarise, mean, ggplot, aes, geom_col, labs, theme_bw, compare
+
+Plan:
+
+1. Import the tidyverse library
+
+2. Read the calcium.csv file from the local filepath
+
+3a. Create a dataframe called ‘control_dataframe’ containing only the null-treatment group by selecting the first 4 columns from the original calcium dataframe.
+
+3b. Rename the columns ‘Initial’, ‘Year1’, ‘Year2’, and ‘Year3’. Drop all rows with NA values. Add a new column called ‘treatment_group’ and set the value to ‘null treatment’ for all cases in the dataframe.
+
+4a. Create a dataframe called ‘treatment_dataframe’ containing only the diet/exercise treatment group by selecting the last 4 columns from the original dataframe.
+
+4b. Rename the columns ‘Initial’, ‘Year1’, ‘Year2’, and ‘Year3’. Drop all rows with NA values. Add a new column called ‘treatment_group’ and set the value to ‘diet/exercise treatment’ for all cases in the dataframe
+
+5a. Create a dataframe called ‘avg_calcium_tbl’ that stores the joined ‘control_dataframe’ and ‘treatment_dataframe’.
+
+5b. Use ‘pivot_longer’ inside the new dataframe to create a new column called ‘Year’ that combines all of the year columns into one, also store the values in a new column called ‘calciumLevel’.
+
+5c. Use ‘group_by(Year, treatment_group)’ then ‘summarise’ to create a new column called ‘average_calcium’ which stores the average calciumLevel by treatment group per year.
+
+6a. Use ‘ggplot’, set ‘data’ equal to ‘avg_calcium_tbl’; then, map the x-axis to ‘Year’, y-axis to ‘average_calcium’, and fill to ‘treatment_group’.
+
+6b. Use ‘geom_col’ and set ‘position’ to ‘dodge’ so that we can compare the data more easily.
+
+6c. Make labels to properly represent the data.
+
+6d. Use ‘theme_bw()’ to make the graph better on the eyes.
+
+#### Later Checks and Improvements
+
+After reviewing my original plan, I added the following checks. These were not part of the original prompt sent to ChatGPT.
+
+1.  After separating the groups and removing blank padding rows, confirm that the control data frame contains 15 women and the treatment data frame contains 16 women.
+2.  After combining the groups and converting the measurements into long format, confirm that there are 124 rows, representing 31 women measured at four time points.
+3.  After calculating the averages, confirm that there are eight rows: one for each combination of treatment group and time point.
+4.  Check that the graph displays Initial, Year 1, Year 2, and Year 3 in chronological order and that its bar heights match the calculated averages.
+5.  If any check fails, inspect the selection, missing-value removal, reshaping, and grouping steps before interpreting the graph.
+
+### ChatGPT's Plan-Informed Response
+
+This follows your plan and compares both groups at the initial measurement and after each of the three years. tidyverse includes ggplot2.
+
+```{r}
+#| label: calcium-packages
+library(tidyverse)
+
+calcium_dataframe <- read.csv("calcium.csv")
+
+```
+
+```{r}
+#| label: calcium-control-df
+control_dataframe <- calcium_dataframe |>
+  select(1:4) |>
+  rename(Initial = 1, Year1 = 2, Year2 = 3, Year3 = 4) |>
+  drop_na() |>
+  mutate(treatment_group = "null treatment")
+
+```
+
+```{r}
+#| label: calcium-treatment-df
+treatment_dataframe <- calcium_dataframe |>
+  select(5:8) |>
+  rename(Initial = 1, Year1 = 2, Year2 = 3, Year3 = 4) |>
+  drop_na() |>
+  mutate(treatment_group = "diet/exercise treatment")
+
+```
+
+```{r}
+#| label: calcium-average-table
+avg_calcium_tbl <- control_dataframe |>
+  bind_rows(treatment_dataframe) |>
+  pivot_longer(
+    cols = Initial:Year3,
+    names_to = "Year",
+    values_to = "calciumLevel"
+  ) |>
+  group_by(Year, treatment_group) |>
+  summarise(
+    average_calcium = mean(calciumLevel),
+    .groups = "drop"
+  )
+
+```
+
+```{r}
+#| label: fig-plan-informed-chatgpt-graph
+#| fig-cap: "Comparing Average Calcium Levels Across Treatment Groups"
+#| fig-pos: H
+ggplot(
+  data = avg_calcium_tbl,
+  mapping = aes(
+    x = Year,
+    y = average_calcium,
+    fill = treatment_group
+  )
+) +
+  geom_col(position = "dodge", width = 0.75) +
+  scale_x_discrete(
+    limits = c("Initial", "Year1", "Year2", "Year3"),
+    labels = c("Initial", "Year 1", "Year 2", "Year 3")
+  ) +
+  labs(
+    x = "Year of Measurement",
+    y = "Average Calcium Level",
+    fill = "Treatment Group"
+  ) +
+  theme_bw()
+
+```
+
+### Second Prompt
+
+what is your version information?
+
+### Second Response
+
+I’m Codex, based on GPT-6, running in ChatGPT Work Mode. I don’t have access to a more specific model build or version identifier.
+
+(This conversation took place on Tuesday November 17, 2026)
+
+## Planning and Prompting: Generic Response
+
+### Generic Prompt
+
+Create a data visualization for these data. Calcium.csv
+
+### Generic Response
+
+![Average Values per Column](static_images/genericChatGPT.png){#fig-generic-calcium}
+
+I created a visualization showing the average value of each column in your dataset. What this shows:
+
+• Each point represents the mean (average) of one column (y0, y1, y2, y3, etc.).
+
+• You can quickly compare which variables tend to have higher or lower values overall.
+
+• For example, some columns cluster around \~70–73, while others drop closer to \~65.
+
+If you want something more insightful, I can also create:
+
+• Boxplots (to show spread and outliers)
+
+• Time series plots (if rows represent time/order)
+
+• Correlation heatmaps
+
+• Side-by-side comparisons (e.g., y0 vs y0.1)
+
+Just tell me 👍 Prompt: What is your version information? You’re chatting with ChatGPT based on the GPT-5.3 architecture. Key details:
+
+• Model: GPT-5.3
+
+• Knowledge cutoff: August 2025
+
+• Current date (system): March 31, 2026
+
+If you need more technical details (capabilities, differences vs GPT-4/5, etc.), just let me know 👍 (This chat took place on Tuesday, March 31st, 2026.)
+
+## My Calcium Visualization
+
+```{r}
+#| label: mycalcium-packages
+## Import the tidyverse library
+library(tidyverse)
+
+## Load the calcium.csv file from the local filepath
+calcium_dataframe <- read.csv("calcium.csv")
+
+```
+
+```{r}
+#| label: mycalcium-controlgroup
+## Create a dataframe with only the null-treatment group
+control_dataframe <- calcium_dataframe |>
+  # Select the first 4 columns (those are the null treatment group columns)
+  select(1:4) |>
+  # Rename the columns to make them reproducible
+  rename(
+    'Initial' = y0,
+    'Year1' = y1,
+    'Year2' = y2,
+    'Year3' = y3
+  ) |>
+  # Drop all rows with NA values
+  drop_na() |>
+  # Add a new column called 'treatment_group' and 
+  # set all values to 'null treatment'
+  mutate(
+    treatment_group = "null treatment"
+  )
+
+```
+
+```{r}
+#| label: mycalcium-treatmentgroup
+## Create a dataframe with only the diet/exercise treatment group
+treatment_dataframe <- calcium_dataframe |>
+  # Select the last 4 columns (the diet/exercise treatment group columns)
+  select(5:8) |>
+  # Rename the columns to make them reproducible
+  rename(
+    'Initial' = y0.1,
+    'Year1' = y1.1,
+    'Year2' = y2.1,
+    'Year3' = y3.1
+  ) |>
+  # Drop all NA values
+  drop_na() |>
+  # Add a new column called 'treatment_group'
+  # and set all values to 'diet/exercise treatment'
+  mutate(
+    treatment_group = "diet/exercise treatment"
+  )
+
+```
+
+```{r}
+#| label: mycalcium-avg-calcium
+## Combine the null and diet\exercise treatment dataframes and compute
+## the average calcium level by treatment group per year
+avg_calcium_tbl <- bind_rows(control_dataframe, treatment_dataframe) |>
+  # Combine all the years into one column called 'year' and
+  # store the values in a new column called 'calciumLevel'
+  pivot_longer(
+    cols = c(Initial, Year1, Year2, Year3),
+    names_to = "Year",
+    values_to = "calciumLevel"
+  ) |>
+  # group by 'Year' and 'treatment_group' to calculate the
+  # average calcium level per year by treatment group
+  group_by(Year, treatment_group) |>
+  summarise(
+    average_calcium = mean(calciumLevel),
+    .groups = "drop"
+  )
+
+```
+
+```{r}
+#| label: fig-mycalcium-graph
+#| fig-cap: "Average Calcium Level per Year by Treatment Type"
+#| fig-pos: H
+#| fig-alt: Grouped bar chart comparing average calcium levels for diet/exercise and null treatment groups from Initial through Year3; the null-treatment group is slightly higher at each point, and both groups decline by Year3.
+#| aria-describedby: mycalcium-long-desc
+## Create a bar graph comparing the average
+## calcium level per year by treatment group
+# using the 'avg_calcium_tbl' dataframe, map 'Year' to the x-axis
+# and 'average_calcium' to the y-axis; also, map 'treatment_group' to the
+# color inside the bars so that we can 
+# distinguish which bar belongs to which group
+ggplot(
+  data = avg_calcium_tbl, 
+  mapping = aes(x = Year, y = average_calcium, fill = treatment_group)
+       ) +
+  geom_col(position = "dodge") +
+  # make proper labels representing the data
+  labs(
+    x = "Year",
+    y = "Average Calcium Level",
+    fill = "Treatment Group"
+  ) +
+  theme_bw()
+
+```
+
+::: {#mycalcium-long-desc}
+Long Description: A grouped bar chart titled “Average Calcium Level per Year by Treatment Type” compares average calcium levels for two treatment groups across four time points. The horizontal axis is labeled “Year” and lists Initial, Year1, Year2, and Year3; the vertical axis is labeled “Average Calcium Level,” with marked values at 0, 20, 40, and 60. Coral bars represent the diet/exercise treatment, and teal bars represent the null treatment. At Initial, the bars are about 69 and 72, respectively; at Year1, about 70 and 73; at Year2, about 71 and 72; and at Year3, about 64 and 65. The null-treatment bars are slightly higher at every time point. Both groups peak around Year1–Year2 and decline by Year3.
+:::
+
+## Comparison of Plan-Informed and Generic Responses
+
+Both the plan-informed response (@fig-plan-informed-chatgpt-graph) and the generic response (@fig-generic-calcium) produced visualizations of the data, but the plan-informed response was much more useful for my goal. I wanted to compare average calcium levels between the null-treatment and diet/exercise groups at the initial measurement and after each of the three years. Like my own graph (@fig-mycalcium-graph), the plan-informed graph separates the treatment groups and places their average measurements side by side at each time point. This makes it easy to compare the groups within each year and follow changes over time. For example, the plan-informed graph (@fig-plan-informed-chatgpt-graph) shows that both groups have lower average calcium levels at Year 3 than at the initial measurement, while the null-treatment group has a slightly higher average at every time point. These patterns are harder to identify in the generic graph (@fig-generic-calcium) because it does not clearly separate the groups.
+
+In contrast, the generic response (@fig-generic-calcium) plotted the average of each original column without clearly identifying the treatment groups or measurement times. Although it summarized the measurements, the reader would need to understand the original column names to know which values belong together. Connecting all the column averages with one line also suggests a continuous sequence, even where the graph moves from one treatment group to the other. This makes the graph harder to interpret and could lead a reader to mistake a difference between groups for a change over time.
+
+My own wrangling reorganizes the data so that each row represents one woman’s calcium measurement at one time point. It then summarizes those measurements into eight averages: one for each combination of treatment group and time point. My graph (@fig-mycalcium-graph) and the plan-informed graph (@fig-plan-informed-chatgpt-graph) display the same calculated averages, despite small differences in formatting. The generic graph (@fig-generic-calcium) also displays column averages, but it leaves the treatment groups and measurement times encoded in the original column names. This shows why understanding what each observation represents matters when deciding how to organize and display the data.
+
+My detailed plan helped by explaining the study’s structure, identifying the comparisons I wanted to make, and specifying how the data should be organized and displayed. Instead of simply asking ChatGPT to create a graph, I explained what the measurements represented and which comparisons I wanted to make. The generic prompt left those decisions to the tool, which produced a graph that did not clearly communicate the study’s context. Overall, this comparison shows that, although the output needs to be checked, providing a clear goal and relevant context can make an AI-generated visualization extremely useful.
+
+# Reflection
+
+Overall, this semester has taught me a lot not only about using R and visualizing/tidying data, but also about how to think through problems. There have been assignments where I’ve been stumped for hours, especially the hypoxia wrangling assignment and, more recently, the Monte Carlo integration assignment. Working through these challenges has taught me that being a data scientist does not mean immediately knowing the solution. It means knowing how to ask questions, break a problem into smaller parts, and figure out what I need to learn before moving forward.
+
+With the hypoxia data, I had to understand what the measurements meant in context before I could decide what each individual case should represent. With Monte Carlo integration, I first had to understand how the method worked before I could create a plan and write the code. These assignments taught me to spend time understanding a problem instead of immediately trying to code a solution.
+
+There will be times when I look at a problem and feel completely clueless, but I now feel more prepared to work through that uncertainty. This class has taught me to explore the data, ask questions, and develop a plan rather than expect the answer to be obvious. The most valuable skill I’ve gained is what I think of as “knowing how to know”: being able to figure out a path forward when I don’t yet have the answer.
+
+{{< pagebreak >}}
+
+# GenAI Usage Appendix
+
+## Big Ten Academic Alliance-Love Data Week Gen AI-Use
+
+I used the ASU Image Accessibility AI Tool on 11/18/26, which uses the GPT-4o model by OpenAI. I uploaded a PNG version of my Penn State and Big Ten home-versus-away scoring graphs. I did not provide any additional text prompts, I only uploaded the image
+
+I received the following verbatim results:
+
+Alt Text: Two-panel blue bar chart comparing home and away average points per game: Penn State scores about 72 away and 75 at home; other Big Ten teams score about 71 away and 79 at home during the 2026 season.
+
+Long description: Two side-by-side blue bar charts compare average points per game at home and away during the 2026 season, excluding neutral-site games. The left chart, titled “Penn State” shows approximately 72 points per game away and 75 at home. The right chart, titled “Other Big Ten Teams” shows approximately 71 points per game away and 79 at home. Both charts use “Game Location” on the horizontal axis and “Average Points per Game” on the vertical axis, with values marked from 0 to 80.
+
+## Monte Carlo Integration Gen AI-Use
+
+I used the ASU Image Accessibility AI Tool on 11/18/26, which uses the GPT-4o model by OpenAI. I uploaded a PNG version of my Monte Carlo integration small-multiple graph. I did not provide any additional text prompts, I only uploaded the image
+
+I received the following verbatim results:
+
+Alt Text: Four-panel scatterplot showing Monte Carlo integration of a normal curve with 10, 100, 1,000, and 10,000 points, including estimated integrals and color-coded points above or below the curve.
+
+Long Description: A four-panel 2-by-2 figure titled “Monte Carlo Integration of the Normal Curve.” Each panel shows a black bell-shaped normal curve over a scatterplot of randomly generated points. The horizontal axis is labeled “x,” ranging approximately from −4 to 4, and the vertical axis is labeled “Density,” ranging from 0.0 to 0.4. A legend beside each plot identifies pink points as “FALSE” and teal points as “TRUE” under the heading “On or below curve.”
+
+Top left: 10 points; estimated integral 1.28. The points are sparsely distributed around the curve.
+
+Top right: 100 points; estimated integral 0.864. The points are more numerous, with teal points concentrated beneath the curve and pink points primarily above it.
+
+Bottom left: 1,000 points; estimated integral 0.9248. The plot contains a dense field of pink and teal points, with teal points filling the area beneath the bell curve.
+
+Bottom right: 10,000 points; estimated integral 1.001. The plot is densely filled with pink points above the curve and teal points below it, making the curve’s shape clearly visible.
+
+## Planning and Prompting GenAI Tools GenAI-Use
+
+### Plan-Informed Prompt
+
+#### Prompt #1
+
+Goal: In R, create a bar graph comparing the calcium levels of 31 women over the span of 3 years. 15 of these women make up the null treatment group, while the other 16 make up the diet/exercise group. I want to take the average calcium level per year of both groups and compare those numbers.
+
+Needs: Nouns: tidyverse, ggplot2, calcium.csv, calcium_dataframe, control_dataframe, treatment_dataframe, treatment_group, null treatment, diet/exercise treatment, Initial, Year1, Year2, Year3, Year, calciumLevel, avg_calcium_tbl, average_calcium, bar graph, bars, x-axis, y-axis, legend
+
+Verbs: library, read.csv, select, rename, drop_na, mutate, bind_rows, pivot_longer, group_by, summarise, mean, ggplot, aes, geom_col, labs, theme_bw, compare
+
+Plan:
+
+1.Import the tidyverse library
+
+2.Read the calcium.csv file from the local filepath
+
+3a. Create a dataframe called ‘control_dataframe’ containing only the null-treatment group by selecting the first 4 columns from the original calcium dataframe.
+
+3b. Rename the columns ‘Initial’, ‘Year1’, ‘Year2’, and ‘Year3’. Drop all rows with NA values. Add a new column called ‘treatment_group’ and set the value to ‘null treatment’ for all cases in the dataframe.
+
+4a. Create a dataframe called ‘treatment_dataframe’ containing only the diet/exercise treatment group by selecting the last 4 columns from the original dataframe.
+
+4b. Rename the columns ‘Initial’, ‘Year1’, ‘Year2’, and ‘Year3’. Drop all rows with NA values. Add a new column called ‘treatment_group’ and set the value to ‘diet/exercise treatment’ for all cases in the dataframe
+
+5a. Create a dataframe called ‘avg_calcium_tbl’ that stores the joined ‘control_dataframe’ and ‘treatment_dataframe’.
+
+5b. Use ‘pivot_longer’ inside the new dataframe to create a new column called ‘Year’ that combines all of the year columns into one, also store the values in a new column called ‘calciumLevel’.
+
+5c. Use ‘group_by(Year, treatment_group)’ then ‘summarise’ to create a new column called ‘average_calcium’ which stores the average calciumLevel by treatment group per year.
+
+6a. Use ‘ggplot’, set ‘data’ equal to ‘avg_calcium_tbl’; then, map the x-axis to ‘Year’, y-axis to ‘average_calcium’, and fill to ‘treatment_group’.
+
+6b. Use ‘geom_col’ and set ‘position’ to ‘dodge’ so that we can compare the data more easily.
+
+6c. Make labels to properly represent the data.
+
+6d. Use ‘theme_bw()’ to make the graph better on the eyes.
+
+#### Response #1
+
+This follows your plan and compares both groups at the initial measurement and after each of the three years. tidyverse includes ggplot2.
+
+```{r}
+#| label: chatgpt-verbatim-calcium-code
+library(tidyverse)
+calcium_dataframe <- read.csv("calcium.csv")
+
+control_dataframe <- calcium_dataframe |>
+  select(1:4) |>
+  rename(Initial = 1, Year1 = 2, Year2 = 3, Year3 = 4) |>
+  drop_na() |>
+  mutate(treatment_group = "null treatment")
+
+treatment_dataframe <- calcium_dataframe |>
+  select(5:8) |>
+  rename(Initial = 1, Year1 = 2, Year2 = 3, Year3 = 4) |>
+  drop_na() |>
+  mutate(treatment_group = "diet/exercise treatment")
+
+avg_calcium_tbl <- control_dataframe |>
+  bind_rows(treatment_dataframe) |>
+  pivot_longer(
+    cols = Initial:Year3,
+    names_to = "Year",
+    values_to = "calciumLevel"
+  ) |>
+  group_by(Year, treatment_group) |>
+  summarise(
+    average_calcium = mean(calciumLevel),
+    .groups = "drop")
+
+ggplot(
+  data = avg_calcium_tbl,
+  mapping = aes(
+    x = Year,
+    y = average_calcium,
+    fill = treatment_group
+  )
+) +
+  geom_col(position = "dodge", width = 0.75) +
+  scale_x_discrete(
+    limits = c("Initial", "Year1", "Year2", "Year3"),
+    labels = c("Initial", "Year 1", "Year 2", "Year 3")
+  ) +
+  labs(
+    title = "Comparing Average Calcium Levels Across Treatment Groups",
+    x = "Year of Measurement",
+    y = "Average Calcium Level",
+    fill = "Treatment Group"
+  ) +
+  theme_bw()
+  
+```
+
+#### Prompt #2
+
+what is your version information?
+
+#### Response #2
+
+I’m Codex, based on GPT-6, running in ChatGPT Work Mode. I don’t have access to a more specific model build or version identifier.
+
+(This conversation took place on Tuesday November 17, 2026)
+
+### Generic Prompt
+
+#### Prompt #1
+
+Create a data visualization for these data. Calcium.csv
+
+#### Response #1
+
+![Average Values per Column](static_images/genericChatGPT.png)
+
+I created a visualization showing the average value of each column in your dataset. What this shows:
+
+• Each point represents the mean (average) of one column (y0, y1, y2, y3, etc.).
+
+• You can quickly compare which variables tend to have higher or lower values overall.
+
+• For example, some columns cluster around \~70–73, while others drop closer to \~65.
+
+If you want something more insightful, I can also create:
+
+• Boxplots (to show spread and outliers)
+
+• Time series plots (if rows represent time/order)
+
+• Correlation heatmaps
+
+• Side-by-side comparisons (e.g., y0 vs y0.1)
+
+Just tell me 👍 Prompt: What is your version information? You’re chatting with ChatGPT based on the GPT-5.3 architecture. Key details:
+
+• Model: GPT-5.3
+
+• Knowledge cutoff: August 2025
+
+• Current date (system): March 31, 2026
+
+If you need more technical details (capabilities, differences vs GPT-4/5, etc.), just let me know 👍 (This chat took place on Tuesday, March 31st, 2026.)
+
+{{< pagebreak >}}
+
+### Calcium Visualization Accessibility Text
+
+I used the ASU Image Accessibility AI Tool on 11/18/26, which uses the GPT-4o model by OpenAI. I uploaded a PNG version of my average calcium level graph. I did not provide any additional text prompts, I only uploaded the image
+
+I received the following verbatim results:
+
+Long Description:
+
+A grouped bar chart titled “Average Calcium Level per Year by Treatment Type” compares average calcium levels for two treatment groups across four time points. The horizontal axis is labeled “Year” and lists Initial, Year1, Year2, and Year3; the vertical axis is labeled “Average Calcium Level,” with marked values at 0, 20, 40, and 60. Coral bars represent the diet/exercise treatment, and teal bars represent the null treatment. At Initial, the bars are about 69 and 72, respectively; at Year1, about 70 and 73; at Year2, about 71 and 72; and at Year3, about 64 and 65. The null-treatment bars are slightly higher at every time point. Both groups peak around Year1–Year2 and decline by Year3.
+
+Alt-text:
+
+Grouped bar chart comparing average calcium levels for diet/exercise and null treatment groups from Initial through Year3; the null-treatment group is slightly higher at each point, and both groups decline by Year3.
+
+{{< pagebreak >}}
+
+# Code Appendix
+
+```{r}
+#| label: codeAppend
+#| ref-label: !expr knitr::all_labels()
+#| echo: true
+#| eval: false
+
+```
