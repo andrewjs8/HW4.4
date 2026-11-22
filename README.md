@@ -11,22 +11,22 @@ The report contains five main sections:
 3. Monte Carlo numerical integration of the standard normal curve.
 4. A comparison of plan-informed and generic GenAI responses for analyzing calcium data.
 5. A reflection on the problem-solving skills I have developed in STAT 184.
-6. A GenAI Usage Appendix and a Code Appendix.
 
-### Interesting Insight (Optional)
+The report also includes a GenAI Usage Appendix and a Code Appendix.
 
-This is optional but highly recommended. You'll include one interesting insight from your project as part of the README. This insight is most effective when you include a visual. Keep in mind that this visual must be included as an image file (e.g., JPG, PNG, etc.). You can export plots created with `{ggplot2}` by using the function `ggsave`.
+[View the rendered report](hw4.3.pdf)
 
 ### Interesting Insight
 
 One interesting result is that Penn State had a much smaller home–away scoring difference than the other Big Ten teams combined. Penn State averaged approximately 73 points per game away and 75 points at home, while the other Big Ten teams averaged approximately 71 points away and 79 points at home. This means Penn State’s home–away difference was about 2 points, compared with about 8 points for the other teams. Although these averages do not explain why the difference exists, they show how a visualization can reveal a pattern that may be worth exploring further.
 
+![Bar charts comparing home and away scoring averages for Penn State and other Big Ten women’s basketball teams](images/static_images/homevsaway.png)
 
 ## Data Sources and Acknowledgements
 
 This project uses the following data:
 
-- `diamonds`, a course-provided dataset containing a set of diamonds with descriptive statistics.
+- `diamonds`, a dataset included with `ggplot2` containing individual diamond measurements and characteristics.
 - `games_copy.csv`, a course-provided NCAA women’s basketball dataset.
 - `calcium.csv`, a course-provided dataset containing calcium measurements for 31 women.
 
@@ -34,30 +34,33 @@ The analysis was completed using R, Quarto, `ggplot2`, `tidyverse`, and `kableEx
 
 ## Current Plan
 
-1. Organizing the project files in an RStudio project.
-2. Cleaning and summarizing the required datasets.
-3. Creating three descriptive-statistics tables for the diamond dimensions.
-4. Creating the Big Ten home-and-away scoring visualization.
-5. Creating a four-panel Monte Carlo integration visualization.
-6. Comparing plan-informed and generic GenAI results.
-7. Writing narrative text that explains the results and their context.
-8. Adding a reflection, GenAI Usage Appendix, and Code Appendix.
-9. Rendering the QMD file directly to PDF.
-10. Proofreading the final document and checking it against the assignment rubrics.
+The Homework 4.3 report is complete. My current plan is to finish the repository documentation, verify that all supporting files are included, and check that the report renders successfully from the repository.
+
+Changes are developed on the `dev-Andrew` branch. GitHub issues identify required work, descriptive commits document changes, and pull requests merge completed work into `main`.
+
+See [PLAN.md](PLAN.md) for the detailed goals, needs, and steps for both the analysis project and repository maintenance.
 
 ## Repo Structure
 
-This repository is maintained using GitHub’s version-control features:
+- `hw4.3.qmd` — Quarto source document containing the analysis, narrative, and R code.
+- `hw4.3.pdf` — Submitted Homework 4.3 PDF report.
+- `games_copy.csv` — Basketball dataset stored using Git LFS.
+- `calcium.csv` — Calcium dataset used in the planning and prompting analysis.
+- `images/static_images/` — Supporting static image used in the report.
+- `PLAN.md` — Detailed analysis and repository maintenance plans.
+- `HW4.4_Template.Rproj` — RStudio project file.
+- `optional_files/` — Optional citation and coding-style resources.
+- `README.md` — Project overview and repository information.
 
-- Changes are developed on the `dev-Andrew` branch rather than directly on `main`.
-- GitHub issues are used to identify and organize required work.
-- Commits use descriptive messages explaining the completed changes.
-- Pull requests are used to review and merge work into `main`.
-- The QMD, PDF, datasets, and supporting files are kept together so that the analysis can be reproduced.
-- The report is rendered again after changes are made to confirm that it still works correctly.
-- Large files are managed using Git Large File Storage.
+To reproduce the report, install Git LFS, clone the repository, and run `git lfs pull` inside the repository folder. Open the RStudio project and install `tidyverse` and `kableExtra` if necessary. With Quarto and a LaTeX distribution installed, open `hw4.3.qmd` and click Render.
 
 ## Authors
+
+Andrew Speer  
+STAT 184, Penn State  
+GitHub: [andrewjs8](https://github.com/andrewjs8)
+
+For questions about this project, email: andrewjspeer@gmail.com
 
 Andrew Speer  
 STAT 184, Penn State
