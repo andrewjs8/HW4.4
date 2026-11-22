@@ -33,6 +33,7 @@ The following tables compare diamond depth (z), length (x), and width (y), measu
 #| warning: false
 #| lst-cap: "Code Chunk for Importing Needed Libraries and Diamonds Data"
 
+# coding style: Tidyverse Style Guide.
 # import the tidyverse library
 library(tidyverse)
 library(kableExtra)
@@ -622,7 +623,7 @@ Create a data visualization for these data. Calcium.csv
 
 ### Generic Response
 
-![Average Values per Column](static_images/genericChatGPT.png){#fig-generic-calcium}
+![Average Values per Column](images/static_images/genericChatGPt.png){#fig-generic-calcium}
 
 I created a visualization showing the average value of each column in your dataset. What this shows:
 
@@ -927,7 +928,7 @@ Create a data visualization for these data. Calcium.csv
 
 #### Response #1
 
-![Average Values per Column](static_images/genericChatGPT.png)
+![Average Values per Column](images/static_images/genericChatGPt.png)
 
 I created a visualization showing the average value of each column in your dataset. What this shows:
 
