@@ -61,6 +61,3 @@ STAT 184, Penn State
 GitHub: [andrewjs8](https://github.com/andrewjs8)
 
 For questions about this project, email: andrewjspeer@gmail.com
-
-Andrew Speer  
-STAT 184, Penn State
