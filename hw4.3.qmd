@@ -538,7 +538,7 @@ This follows your plan and compares both groups at the initial measurement and a
 #| label: calcium-packages
 library(tidyverse)
 
-calcium_dataframe <-read.csv("https://raw.githubusercontent.com/andrewjs8/HW4.4/main/calcium.csv")
+calcium_dataframe <- read.csv("https://raw.githubusercontent.com/andrewjs8/HW4.4/main/calcium.csv")
 
 ```
 
